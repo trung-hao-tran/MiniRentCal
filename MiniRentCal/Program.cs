@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using MiniRentCal.Data;
+using QuestPDF.Infrastructure;
+
 namespace MiniRentCal
 {
     public class Program
@@ -6,8 +10,11 @@ namespace MiniRentCal
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            QuestPDF.Settings.License = LicenseType.Community;
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
@@ -29,6 +36,12 @@ namespace MiniRentCal
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.Migrate();
+            }
 
             app.Run();
         }

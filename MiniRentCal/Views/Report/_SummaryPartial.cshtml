@@ -1,0 +1,50 @@
+﻿@model List<RentalBlockViewModel>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Tóm tắt";
+    var customCulture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+    customCulture.NumberFormat.NumberGroupSeparator = " ";
+}
+<!-- Summary Content -->
+<div class="summary-container">
+    <h2>Báo cáo ngày @ViewBag.CalculationDate</h2>
+    <p>Tổng số phòng: @ViewBag.TotalUnits</p>
+    <p>Tổng chi phí: @ViewBag.TotalCost.ToString("N0")</p>
+    <div class="text-start mt-4">
+        <a href="/Invoice/GenerateInvoices?sessionId=@ViewBag.SessionId" class="btn btn-primary">In hoá đơn</a>
+    </div>
+    @foreach (var block in Model)
+    {
+        <h3>Dãy @block.BlockNumber</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Phòng</th>
+                    <th>Lượng điện dùng</th>
+                    <th>Chi phí điện</th>
+                    <th>Lượng nước dùng</th>
+                    <th>Chi phí nước</th>
+                    <th>Chi phí rác</th>
+                    <th>Tổng chi phí</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var unit in block.Units)
+                {
+                    <tr>
+                        <td>@($"{block.BlockNumber}{unit.RoomNumber}")</td>
+                        <td>@((unit.NewElectricAmount - unit.CurrentElectricAmount).ToString("N2", customCulture))</td>
+                        <td>@unit.ElectricCost.ToString("N2", customCulture)</td>
+                        <td>@((unit.NewWaterAmount - unit.CurrentWaterAmount).ToString("N2", customCulture))</td>
+                        <td>@unit.WaterCost.ToString("N2", customCulture)</td>
+                        <td>@unit.GarbageCost.ToString("N2", customCulture)</td>
+                        <td>@unit.TotalCost.ToString("N2", customCulture)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Button to generate invoices -->
+    
+</div>

@@ -1,0 +1,258 @@
+﻿@model List<RentalBlockViewModel>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Tính toán chi phí thuê";
+    var customCulture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+    customCulture.NumberFormat.NumberGroupSeparator = " ";
+}
+
+<style>
+    .total-cost-column {
+        width: 20%; /* Adjust width as necessary */
+    }
+
+    .block-total-cost {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .is-invalid {
+        border-color: red;
+        background-color: #f8d7da;
+    }
+
+    .validation-error {
+        font-size: 0.9rem;
+        color: red;
+    }
+
+    .warning-text {
+        font-size: 0.9rem;
+        color: orange;
+    }
+
+    .negative-total {
+        color: red;
+    }
+
+    .completed-total {
+        color: green;
+    }
+</style>
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Tính toán chi phí thuê</h1>
+    <form id="rentalForm" method="post" asp-action="CalculateRental">
+        @for (int blockIndex = 0; blockIndex < Model.Count; blockIndex++)
+        {
+            var block = Model[blockIndex];
+            <div class="card mb-4 block-card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Dãy @block.BlockNumber</h4>
+                </div>
+                <div class="card-body">
+                    <input type="hidden" name="[@blockIndex].BlockNumber" value="@block.BlockNumber" />
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Phòng</th>
+                                    <th>Giá phòng</th>
+                                    <th>Số điện hiện tại</th>
+                                    <th>Số điện mới</th>
+                                    <th>Số nước hiện tại</th>
+                                    <th>Số nước mới</th>
+                                    <th class="total-cost-column">Tổng chi phí</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int unitIndex = 0; unitIndex < block.Units.Count; unitIndex++)
+                                {
+                                    var unit = block.Units[unitIndex];
+
+                                    <!-- Hidden Inputs for Unit Properties -->
+                                    <input type="hidden" name="[@blockIndex].Units[@unitIndex].UnitId" value="@unit.UnitId" />
+                                    <input type="hidden" name="[@blockIndex].Units[@unitIndex].RoomNumber" value="@unit.RoomNumber" />
+                                    <input type="hidden" name="[@blockIndex].Units[@unitIndex].UnitCost" value="@unit.UnitCost" />
+                                    <input type="hidden" name="[@blockIndex].Units[@unitIndex].CurrentElectricAmount" value="@unit.CurrentElectricAmount" />
+                                    <input type="hidden" name="[@blockIndex].Units[@unitIndex].CurrentWaterAmount" value="@unit.CurrentWaterAmount" />
+                                    <input type="hidden" name="[@blockIndex].Units[@unitIndex].ElectricCost" value="@unit.ElectricCost" />
+                                    <input type="hidden" name="[@blockIndex].Units[@unitIndex].WaterCost" value="@unit.WaterCost" />
+                                    <input type="hidden" name="[@blockIndex].Units[@unitIndex].GarbageCost" value="@unit.GarbageCost" />
+
+                                    <tr data-unit-id="@unit.UnitId" data-unit-cost="@unit.UnitCost" data-electric-cost="@unit.ElectricCost" data-water-cost="@unit.WaterCost" data-garbage-cost="@unit.GarbageCost">
+                                        <td>@($"{block.BlockNumber}{unit.RoomNumber}")</td>
+                                        <td class="unit-cost">@unit.UnitCost.ToString("N2", customCulture)</td>
+                                        <td class="current-electric">@unit.CurrentElectricAmount.ToString("N2", customCulture)</td>
+                                        <td>
+                                            <input type="number" class="form-control new-electric" name="[@blockIndex].Units[@unitIndex].NewElectricAmount" step="0.01" min="0.01" required />
+                                            <span class="validation-error"></span>
+                                            <span class="warning-text"></span>
+                                        </td>
+                                        <td class="current-water">@unit.CurrentWaterAmount.ToString("N2", customCulture)</td>
+                                        <td>
+                                            <input type="number" class="form-control new-water" name="[@blockIndex].Units[@unitIndex].NewWaterAmount" step="0.01" min="0.01" required />
+                                            <span class="validation-error"></span>
+                                            <span class="warning-text"></span>
+                                        </td>
+                                        <td class="total-cost">@unit.UnitCost + @unit.GarbageCost</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>Tổng chi phí dãy @block.BlockNumber :</span>
+                    <span class="block-total-cost">0</span>
+                </div>
+            </div>
+        }
+        <div class="text-end">
+            <div id="all-blocks-total-cost" class="text-end mb-4">
+                <span>Tổng chi phí tất cả dãy:</span>
+                <span id="overall-total-cost" class="fw-bold">0</span>
+            </div>
+            <button type="submit" class="btn btn-primary">Xác nhận và tính toán</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Helper function to format numbers with spaces for thousands
+        function formatNumberWithSpaces(number) {
+            return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        // Function to validate inputs
+        function validateInput(input, currentValue) {
+            const value = parseFloat(input.value);
+            const errorSpan = input.nextElementSibling;
+            const warningSpan = errorSpan.nextElementSibling;
+
+            if (value <= 0) {
+                input.classList.add('is-invalid');
+                errorSpan.textContent = "Giá trị phải lớn hơn 0.";
+                warningSpan.textContent = "";
+                return false;
+            } else if (value < currentValue) {
+                input.classList.remove('is-invalid');
+                errorSpan.textContent = "";
+                warningSpan.textContent = "Giá trị mới nhỏ hơn giá trị hiện tại.";
+                return true;
+            } else {
+                input.classList.remove('is-invalid');
+                errorSpan.textContent = "";
+                warningSpan.textContent = "";
+                return true;
+            }
+        }
+
+        // Function to calculate total cost for a single unit
+        function calculateUnitTotalCost(row) {
+            const unitCost = parseFloat(row.dataset.unitCost);
+            const garbageCost = parseFloat(row.dataset.garbageCost);
+
+            const currentElectric = parseFloat(row.querySelector('.current-electric').textContent.replace(/\s/g, ''));
+            const newElectric = parseFloat(row.querySelector('.new-electric').value) || null;
+            const electricCost = parseFloat(row.dataset.electricCost);
+
+            const currentWater = parseFloat(row.querySelector('.current-water').textContent.replace(/\s/g, ''));
+            const newWater = parseFloat(row.querySelector('.new-water').value) || null;
+            const waterCost = parseFloat(row.dataset.waterCost);
+
+            let totalCost = unitCost + garbageCost;
+
+            if (newElectric !== null) {
+                totalCost += (newElectric - currentElectric) * electricCost;
+            }
+
+            if (newWater !== null) {
+                totalCost += (newWater - currentWater) * waterCost;
+            }
+
+            const totalCostElement = row.querySelector('.total-cost');
+            totalCostElement.textContent = formatNumberWithSpaces(totalCost);
+
+            // Update styles based on total cost
+            if (totalCost < 0) {
+                totalCostElement.classList.add('negative-total');
+                totalCostElement.classList.remove('completed-total');
+            } else if (newElectric !== null && newWater !== null) {
+                totalCostElement.classList.add('completed-total');
+                totalCostElement.classList.remove('negative-total');
+            } else {
+                totalCostElement.classList.remove('negative-total', 'completed-total');
+            }
+
+            return totalCost;
+        }
+
+        // Function to calculate total cost for a block
+        function calculateBlockTotalCost(block) {
+            const rows = block.querySelectorAll('tbody tr');
+            let blockTotal = 0;
+
+            rows.forEach(row => {
+                const currentElectric = parseFloat(row.querySelector('.current-electric').textContent.replace(/\s/g, ''));
+                const currentWater = parseFloat(row.querySelector('.current-water').textContent.replace(/\s/g, ''));
+
+                const newElectricInput = row.querySelector('.new-electric');
+                const newWaterInput = row.querySelector('.new-water');
+
+                validateInput(newElectricInput, currentElectric);
+                validateInput(newWaterInput, currentWater);
+
+                blockTotal += calculateUnitTotalCost(row);
+            });
+
+            block.querySelector('.block-total-cost').textContent = formatNumberWithSpaces(blockTotal);
+        }
+
+        // Function to calculate the total cost of all blocks
+        function calculateOverallTotalCost() {
+            let overallTotal = 0;
+
+            // Iterate over all blocks and sum their total costs
+            document.querySelectorAll('.block-card').forEach(block => {
+                const blockTotalText = block.querySelector('.block-total-cost').textContent.replace(/\s/g, '');
+                const blockTotal = parseFloat(blockTotalText) || 0;
+                overallTotal += blockTotal;
+            });
+
+            // Update the overall total cost element
+            document.getElementById('overall-total-cost').textContent = formatNumberWithSpaces(overallTotal);
+        }
+
+        document.querySelectorAll('.block-card').forEach(block => {
+            const inputs = block.querySelectorAll('.new-electric, .new-water');
+            inputs.forEach(input => {
+                input.addEventListener('input', function () {
+                    calculateBlockTotalCost(block);
+                    calculateOverallTotalCost(); // Recalculate overall total whenever block totals change
+                });
+            });
+
+            calculateBlockTotalCost(block);
+            calculateOverallTotalCost();
+        });
+
+        // Prevent form submission if inputs are invalid
+        document.getElementById('rentalForm').addEventListener('submit', function (event) {
+            const inputs = this.querySelectorAll('.new-electric, .new-water');
+            let isValid = true;
+
+            inputs.forEach(input => {
+                if (parseFloat(input.value) <= 0 || isNaN(parseFloat(input.value))) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                event.preventDefault();
+                alert('Vui lòng kiểm tra tất cả các giá trị. Không được để trống hoặc nhỏ hơn 0.');
+            }
+        });
+    });
+</script>

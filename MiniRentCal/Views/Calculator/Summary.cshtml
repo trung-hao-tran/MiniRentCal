@@ -1,0 +1,77 @@
+﻿@model List<RentalBlockViewModel>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Tóm tắt";
+    var customCulture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+    customCulture.NumberFormat.NumberGroupSeparator = " ";
+}
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Tóm tắt</h1>
+
+
+    <div class="mb-4 text-end">
+        <a asp-action="GenerateInvoices" asp-controller="Invoice" asp-route-sessionId="@ViewBag.SessionId" class="btn btn-primary" target="_blank">In hoá đơn</a>
+    </div>
+
+    <div class="mb-4">
+        <p><strong>Ngày ghi nhận:</strong> @ViewBag.CalculationDate</p>
+        <p><strong>Tổng số phòng:</strong> @ViewBag.TotalUnits</p>
+        <p><strong>Tổng chi phí:</strong> @ViewBag.TotalCost.ToString("N2", customCulture)</p>
+    </div>
+
+    <ul class="nav nav-tabs" id="blockTabs" role="tablist">
+        @foreach (var block in Model)
+        {
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(@block.BlockNumber == Model.First().BlockNumber ? "active" : "")"
+                        id="tab-@block.BlockNumber"
+                        data-bs-toggle="tab"
+                        data-bs-target="#block-@block.BlockNumber"
+                        type="button"
+                        role="tab">
+                    Dãy @block.BlockNumber
+                </button>
+            </li>
+        }
+    </ul>
+
+    <div class="tab-content">
+        @foreach (var block in Model)
+        {
+            <div class="tab-pane fade @(@block.BlockNumber == Model.First().BlockNumber ? "show active" : "")"
+                 id="block-@block.BlockNumber"
+                 role="tabpanel">
+                <div class="table-responsive mt-3">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Phòng</th>
+                                <th>Lượng điện dùng</th>
+                                <th>Chi phí điện</th>
+                                <th>Lượng nước dùng</th>
+                                <th>Chi phí nước</th>
+                                <th>Chi phí rác</th>
+                                <th>Tổng chi phí</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var unit in block.Units)
+                            {
+                                <tr>
+                                    <td>@($"{block.BlockNumber}{unit.RoomNumber}")</td>
+                                    <td>@((unit.NewElectricAmount - unit.CurrentElectricAmount).ToString("N2", customCulture))</td>
+                                    <td>@unit.ElectricCost.ToString("N2", customCulture)</td>
+                                    <td>@((unit.NewWaterAmount - unit.CurrentWaterAmount).ToString("N2", customCulture))</td>
+                                    <td>@unit.WaterCost.ToString("N2", customCulture)</td>
+                                    <td>@unit.GarbageCost.ToString("N2", customCulture)</td>
+                                    <td>@unit.TotalCost.ToString("N2", customCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,45 @@
+﻿@model List<CalculationSession>
+@{
+    ViewData["Title"] = "Báo cáo";
+}
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Báo cáo</h1>
+
+    <div class="mb-4">
+        <label for="sessionDropdown" class="form-label">Chọn báo cáo:</label>
+        <select id="sessionDropdown" class="form-select">
+            @foreach (var session in Model)
+            {
+                <option value="@session.Id">
+                    @session.CalculationDate.ToString("dd/MM/yyyy") - @session.TotalUnits phòng - Tổng chi phí: @session.TotalCost.ToString("N0")
+                </option>
+            }
+        </select>
+    </div>
+
+    <div id="summaryContainer">
+        <!-- Summary Partial will be loaded here -->
+    </div>
+</div>
+
+<script>
+     document.addEventListener('DOMContentLoaded', function () {
+         const dropdown = document.getElementById('sessionDropdown');
+         const summaryContainer = document.getElementById('summaryContainer');
+
+         async function loadSummary(sessionId) {
+             const response = await fetch(`/Report/SummaryPartial?sessionId=${sessionId}`);
+             const content = await response.text();
+             summaryContainer.innerHTML = content;
+         }
+
+         dropdown.addEventListener('change', () => {
+             loadSummary(dropdown.value);
+         });
+
+         // Load default summary on page load
+         loadSummary(dropdown.value);
+     });
+</script>
+

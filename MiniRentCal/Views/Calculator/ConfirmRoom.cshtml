@@ -1,0 +1,44 @@
+﻿@model List<ConfirmRoomViewModel>
+@{
+    ViewData["Title"] = "Xác nhận phòng";
+}
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Xác nhận phòng</h1>
+    <p class="text-center mb-4">Vui lòng chọn các phòng cần tính toán.</p>
+
+    <form method="post" asp-action="ConfirmRoom">
+        @for (int blockIndex = 0; blockIndex < Model.Count; blockIndex++)
+        {
+            var block = Model[blockIndex];
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4>Dãy @block.BlockNumber</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @for (int roomIndex = 0; roomIndex < block.Rooms.Count; roomIndex++)
+                        {
+                            var room = block.Rooms[roomIndex];
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           id="room_@room.UnitId"
+                                           name="SelectedRoomIds"
+                                           value="@room.UnitId"
+                                    @(room.IsSelected ? "checked" : "") />
+                                    <label class="form-check-label" for="room_@room.UnitId">@room.RoomLabel</label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">Xác nhận</button>
+        </div>
+    </form>
+</div>
