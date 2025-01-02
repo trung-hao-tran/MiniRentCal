@@ -1,0 +1,6 @@
+services:
+  minirentcal:
+    image: ${DOCKER_REGISTRY-}minirentcal
+    build:
+      context: .
+      dockerfile: MiniRentCal/Dockerfile
