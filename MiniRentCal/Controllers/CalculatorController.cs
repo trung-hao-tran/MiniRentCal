@@ -62,31 +62,64 @@ namespace MiniRentCal.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CalculateRental(List<RentalBlockViewModel> blocks)
+        public async Task<ActionResult> CalculateRental(List<RentalBlockViewModel> blocks, DateTime calculationDate)
         {
             if (!ModelState.IsValid)
             {
                 return View(blocks);
             }
 
-            // Serialize all unit details across all blocks into JSON
-            var allUnits = blocks.Select(block => new
+            // Fetch all unit IDs from the provided blocks
+            var unitIds = blocks
+                    .SelectMany(block => block.Units
+                        .Where(unit => unit.NewElectricAmount > 0 && unit.NewWaterAmount > 0)
+                        .Select(unit => unit.UnitId))
+                    .ToList();
+
+
+            // Retrieve corresponding units from the database
+            var unitsToUpdate = await _context.Units.Where(u => unitIds.Contains(u.Id)).ToListAsync();
+
+            foreach (var block in blocks)
             {
-                BlockNumber = block.BlockNumber,
-                Units = block.Units.Select(unit => new
+                foreach (var unit in block.Units)
                 {
-                    unit.RoomNumber,
-                    unit.UnitCost,
-                    unit.CurrentElectricAmount,
-                    unit.NewElectricAmount,
-                    unit.CurrentWaterAmount,
-                    unit.NewWaterAmount,
-                    unit.ElectricCost,
-                    unit.WaterCost,
-                    unit.GarbageCost,
-                    unit.TotalCost
-                }).ToList()
-            }).ToList();
+                    // Find the matching unit in the database
+                    var dbUnit = unitsToUpdate.FirstOrDefault(u => u.Id == unit.UnitId);
+                    if (dbUnit != null)
+                    {
+                        // Update electric and water amounts
+                        dbUnit.CurrentElectricAmount = unit.NewElectricAmount;
+                        dbUnit.CurrentWaterAmount = unit.NewWaterAmount;
+                        _context.Units.Update(dbUnit);
+                    }
+                }
+            }
+
+            // Serialize all unit details across all blocks into JSON
+            var allUnits = blocks
+                    .Select(block => new
+                    {
+                        BlockNumber = block.BlockNumber,
+                        Units = block.Units
+                            .Where(unit => unit.NewElectricAmount != 0 || unit.NewWaterAmount != 0)
+                            .Select(unit => new
+                            {
+                                unit.RoomNumber,
+                                unit.UnitCost,
+                                unit.CurrentElectricAmount,
+                                unit.NewElectricAmount,
+                                unit.CurrentWaterAmount,
+                                unit.NewWaterAmount,
+                                unit.ElectricCost,
+                                unit.WaterCost,
+                                unit.GarbageCost,
+                                unit.TotalCost
+                            })
+                            .ToList()
+                    })
+                    .Where(block => block.Units.Any()) // Ensure the block has at least one unit
+                    .ToList();
 
             var serializedUnits = System.Text.Json.JsonSerializer.Serialize(allUnits);
             var totalCost = blocks.Sum(block => block.Units.Sum(unit => unit.TotalCost));
@@ -95,7 +128,7 @@ namespace MiniRentCal.Controllers
             // Create a new calculation session
             var calculationSession = new CalculationSession
             {
-                CalculationDate = DateTime.Now,
+                CalculationDate = calculationDate,
                 TotalCost = totalCost,
                 TotalUnits = totalUnits,
                 SerializedUnits = serializedUnits
@@ -104,16 +137,17 @@ namespace MiniRentCal.Controllers
             _context.CalculationSessions.Add(calculationSession);
             await _context.SaveChangesAsync();
 
-            TempData["Blocks"] = JsonSerializer.Serialize(blocks);
-            return RedirectToAction("Summary", blocks);
+            var newCalculationSessionId = calculationSession.Id;
+            TempData["NewSessionId"] = newCalculationSessionId;
+
+            return RedirectToAction("Summary");
         }
 
         public async Task<IActionResult> Summary()
         {
             // Fetch the most recent calculation session
             var session = await _context.CalculationSessions
-                .OrderByDescending(s => s.CalculationDate)
-                .FirstOrDefaultAsync();
+                .FindAsync(TempData["NewSessionId"]);
 
             if (session == null)
             {

@@ -12,21 +12,33 @@
         {
             var block = Model[blockIndex];
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4>Dãy @block.BlockNumber</h4>
+                   
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input type="checkbox"
+                                        class="form-check-input block-select-all"
+                                        id="select_all_@block.BlockNumber"
+                                        onclick="toggleBlockSelection('@block.BlockNumber', this.checked)"
+                                        checked />
+                                <label class="form-check-label" for="select_all_@block.BlockNumber">Chọn tất cả</label>
+                            </div>
+                        </div>
                         @for (int roomIndex = 0; roomIndex < block.Rooms.Count; roomIndex++)
                         {
                             var room = block.Rooms[roomIndex];
                             <div class="col-md-4">
                                 <div class="form-check">
                                     <input type="checkbox"
-                                           class="form-check-input"
+                                           class="form-check-input block-checkbox-@block.BlockNumber"
                                            id="room_@room.UnitId"
                                            name="SelectedRoomIds"
                                            value="@room.UnitId"
+                                           onchange="updateSelectAllStatus('@block.BlockNumber')"
                                     @(room.IsSelected ? "checked" : "") />
                                     <label class="form-check-label" for="room_@room.UnitId">@room.RoomLabel</label>
                                 </div>
@@ -42,3 +54,22 @@
         </div>
     </form>
 </div>
+
+<script>
+    // Toggle all checkboxes in a block based on "Select All" checkbox state
+    function toggleBlockSelection(blockNumber, isChecked) {
+        const checkboxes = document.querySelectorAll(`.block-checkbox-${blockNumber}`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+    }
+
+    // Update "Select All" checkbox status based on individual checkbox states
+    function updateSelectAllStatus(blockNumber) {
+        const checkboxes = document.querySelectorAll(`.block-checkbox-${blockNumber}`);
+        const selectAllCheckbox = document.getElementById(`select_all_${blockNumber}`);
+        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+        selectAllCheckbox.checked = allChecked;
+    }
+</script>

@@ -6,10 +6,6 @@
     customCulture.NumberFormat.NumberGroupSeparator = " ";
 }
 
-
-<!-- Sidebar -->
-@await Html.PartialAsync("_Utility", ViewData["utility"] as UtilityModel)
-
 <div class="main-contain">
     <h1>Tổng quan các phòng</h1>
     <!-- Filter and Add Button Row -->
@@ -30,6 +26,9 @@
 
         <!-- Add Button -->
         <div class="col-md-6 text-md-end">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#utilityModal">
+                Cập nhật giá dịch vụ
+            </button>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
                 Thêm phòng
             </button>
@@ -80,6 +79,23 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Utility Update Modal -->
+    <div class="modal fade" id="utilityModal" tabindex="-1" aria-labelledby="utilityModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="utilityModalLabel">Cập nhật giá dịch vụ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @await Html.PartialAsync("_Utility", ViewData["utility"] as UtilityModel)
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Create Modal -->
     <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">

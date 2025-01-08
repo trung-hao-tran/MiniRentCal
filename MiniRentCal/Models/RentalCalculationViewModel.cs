@@ -10,10 +10,8 @@ namespace MiniRentCal.Models
         public decimal CurrentElectricAmount { get; set; }
         public decimal CurrentWaterAmount { get; set; }
         [Required]
-        [Range(1, double.MaxValue, ErrorMessage = "Không thể nhập số âm trong mục này")]
         public decimal NewElectricAmount { get; set; }
         [Required]
-        [Range(1, double.MaxValue, ErrorMessage = "Không thể nhập số âm trong mục này")]
         public decimal NewWaterAmount { get; set; }
         public decimal ElectricCost { get; set; }
         public decimal WaterCost { get; set; }

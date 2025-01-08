@@ -81,17 +81,19 @@
                                     <input type="hidden" name="[@blockIndex].Units[@unitIndex].GarbageCost" value="@unit.GarbageCost" />
 
                                     <tr data-unit-id="@unit.UnitId" data-unit-cost="@unit.UnitCost" data-electric-cost="@unit.ElectricCost" data-water-cost="@unit.WaterCost" data-garbage-cost="@unit.GarbageCost">
-                                        <td>@($"{block.BlockNumber}{unit.RoomNumber}")</td>
+                                        <td>
+                                            @($"{block.BlockNumber}{unit.RoomNumber}")
+                                        </td>
                                         <td class="unit-cost">@unit.UnitCost.ToString("N2", customCulture)</td>
                                         <td class="current-electric">@unit.CurrentElectricAmount.ToString("N2", customCulture)</td>
                                         <td>
-                                            <input type="number" class="form-control new-electric" name="[@blockIndex].Units[@unitIndex].NewElectricAmount" step="0.01" min="0.01" required />
+                                            <input type="number" class="form-control new-electric" name="[@blockIndex].Units[@unitIndex].NewElectricAmount" step="0.01" required />
                                             <span class="validation-error"></span>
                                             <span class="warning-text"></span>
                                         </td>
                                         <td class="current-water">@unit.CurrentWaterAmount.ToString("N2", customCulture)</td>
                                         <td>
-                                            <input type="number" class="form-control new-water" name="[@blockIndex].Units[@unitIndex].NewWaterAmount" step="0.01" min="0.01" required />
+                                            <input type="number" class="form-control new-water" name="[@blockIndex].Units[@unitIndex].NewWaterAmount" step="0.01"  required />
                                             <span class="validation-error"></span>
                                             <span class="warning-text"></span>
                                         </td>
@@ -108,13 +110,24 @@
                 </div>
             </div>
         }
-        <div class="text-end">
-            <div id="all-blocks-total-cost" class="text-end mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div id="all-blocks-total-cost" class="text-start">
                 <span>Tổng chi phí tất cả dãy:</span>
                 <span id="overall-total-cost" class="fw-bold">0</span>
             </div>
+            <div>
+                <label for="calculationDate" class="form-label me-2">Ngày tính toán:</label>
+                <input type="date" id="calculationDate" name="CalculationDate"
+                       class="form-control d-inline-block" style="width: auto;"
+                       value="@DateTime.Now.ToString("yyyy-MM-10")"
+                       data-display-date="@DateTime.Now.ToString("dd-MM-yyyy")"
+                       required />
+            </div>
+        </div>
+        <div class="text-end">
             <button type="submit" class="btn btn-primary">Xác nhận và tính toán</button>
         </div>
+
     </form>
 </div>
 
@@ -133,9 +146,9 @@
 
             if (value <= 0) {
                 input.classList.add('is-invalid');
-                errorSpan.textContent = "Giá trị phải lớn hơn 0.";
+                errorSpan.textContent = "Phòng này sẽ ko lưu";
                 warningSpan.textContent = "";
-                return false;
+                return true;
             } else if (value < currentValue) {
                 input.classList.remove('is-invalid');
                 errorSpan.textContent = "";
@@ -244,7 +257,7 @@
             let isValid = true;
 
             inputs.forEach(input => {
-                if (parseFloat(input.value) <= 0 || isNaN(parseFloat(input.value))) {
+                if (parseFloat(input.value) < 0 || isNaN(parseFloat(input.value))) {
                     isValid = false;
                 }
             });

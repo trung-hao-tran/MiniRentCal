@@ -47,8 +47,12 @@
                         <thead>
                             <tr>
                                 <th>Phòng</th>
+                                <th>Số điện cũ</th>
+                                <th>Số điện mới</th>
                                 <th>Lượng điện dùng</th>
                                 <th>Chi phí điện</th>
+                                <th>Số điện cũ</th>
+                                <th>Số điện mới</th>
                                 <th>Lượng nước dùng</th>
                                 <th>Chi phí nước</th>
                                 <th>Chi phí rác</th>
@@ -60,8 +64,12 @@
                             {
                                 <tr>
                                     <td>@($"{block.BlockNumber}{unit.RoomNumber}")</td>
+                                    <td>@unit.CurrentElectricAmount.ToString("N2", customCulture)</td>
+                                    <td>@unit.NewElectricAmount.ToString("N2", customCulture)</td>
                                     <td>@((unit.NewElectricAmount - unit.CurrentElectricAmount).ToString("N2", customCulture))</td>
                                     <td>@unit.ElectricCost.ToString("N2", customCulture)</td>
+                                    <td>@unit.CurrentWaterAmount.ToString("N2", customCulture)</td>
+                                    <td>@unit.NewWaterAmount.ToString("N2", customCulture)</td>
                                     <td>@((unit.NewWaterAmount - unit.CurrentWaterAmount).ToString("N2", customCulture))</td>
                                     <td>@unit.WaterCost.ToString("N2", customCulture)</td>
                                     <td>@unit.GarbageCost.ToString("N2", customCulture)</td>
