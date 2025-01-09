@@ -31,7 +31,7 @@
 
             foreach (var invoice in _invoices)
             {
-                grid.Item().Border(1).Padding(6).Height(400).Grid(innerGrid =>
+                grid.Item().Border(1).Padding(6).Height(380).Grid(innerGrid =>
                 {
                     innerGrid.Columns(4); // Three-column grid layout
 

@@ -10,9 +10,15 @@
     <h2>Báo cáo ngày @ViewBag.CalculationDate</h2>
     <p>Tổng số phòng: @ViewBag.TotalUnits</p>
     <p>Tổng chi phí: @ViewBag.TotalCost.ToString("N0")</p>
-    <div class="text-start mt-4">
-        <a href="/Invoice/GenerateInvoices?sessionId=@ViewBag.SessionId" class="btn btn-primary">In hoá đơn</a>
+    <div class="row mt-4">
+        <div class="col-auto">
+            <a href="/Invoice/GenerateInvoices?sessionId=@ViewBag.SessionId" class="btn btn-primary">In hoá đơn</a>
+        </div>
+        <div class="col-auto">
+            <a href="/Invoice/GenerateOwnerInvoices?sessionId=@ViewBag.SessionId" class="btn btn-primary">In hoá đơn tổng</a>
+        </div>
     </div>
+
     @foreach (var block in Model)
     {
         <h3>Dãy @block.BlockNumber</h3>
