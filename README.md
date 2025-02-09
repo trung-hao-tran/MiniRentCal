@@ -31,32 +31,35 @@ The project uses a Docker Compose file to run both the ASP.NET web application a
 
 2. **Prepare the HTTPS Certificate:**
 
-	for `powershell` user:
-	``` powershell
-	dotnet dev-certs https -ep "$env:USERPROFILE\.aspnet\https\aspnetapp.pfx"  -p YourPasswordHere
-	dotnet dev-certs https --trust
-	```
-	if `command prompt` user:
-	``` bash
-	dotnet dev-certs https -ep %USERPROFILE%\.aspnet\https\aspnetapp.pfx -p YourPasswordHere
-	dotnet dev-certs https --trust
-	```
-	
-	You can change the password to your preference. The password should be matched in the `docker-compose.yml` file.
+for `powershell` user:
+``` powershell
+dotnet dev-certs https -ep "$env:USERPROFILE\.aspnet\https\aspnetapp.pfx"  -p YourPasswordHere
+dotnet dev-certs https --trust
+```
+for `command prompt` user:
+``` bash
+dotnet dev-certs https -ep %USERPROFILE%\.aspnet\https\aspnetapp.pfx -p YourPasswordHere
+dotnet dev-certs https --trust
+```
 
-3. **Build and Run the Containers:**
+You can change the password to your preference. The password should be matched in the `docker-compose.yml` file.
+Make sure to mount the correct directory for container to HTTPS certificate.
+
+4. **Build and Run the Containers:**
 
    ```bash
    docker-compose up --build
    ```
 
-4. **Bacpac Import/Export**
+5. **Bacpac Import/Export**
 
-Bacpac file is provided in Data. To import the bacpac file, please use [SSMS](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms).
+Bacpac file is provided in Data. To import/export the bacpac file, please use [SSMS](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms).
+
+Check `Connection String` in `docker-compose.yml` for Db connection details.
 
 Please keep the database name as `Azure_backup` for the application to work properly.
 
-If you wish to use different database, please update the connection string in `appsettings.json` file.
+If you wish to use different database, please update the connection string in `appsettings.json` file and `docker-compose.yml`.
 
 
 5. **Access the Application:**
