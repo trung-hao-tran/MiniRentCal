@@ -32,11 +32,14 @@ The project uses a Docker Compose file to run both the ASP.NET web application a
 2. **Prepare the HTTPS Certificate:**
 
   for `powershell` user:
+  
   ``` powershell
   dotnet dev-certs https -ep "$env:USERPROFILE\.aspnet\https\aspnetapp.pfx"  -p YourPasswordHere
   dotnet dev-certs https --trust
   ```
+
   for `command prompt` user:
+  
   ``` bash
   dotnet dev-certs https -ep %USERPROFILE%\.aspnet\https\aspnetapp.pfx -p YourPasswordHere
   dotnet dev-certs https --trust
